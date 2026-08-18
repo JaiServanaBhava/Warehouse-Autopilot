@@ -21,7 +21,7 @@
 
 > Add your main command-center screenshot here before submitting (save it into a `/screenshots` folder in the repo, keep it under ~300KB so the repo stays under the 10MB limit).
 
-![Warehouse Autopilot Command Center](./screenshots/command-center.png)
+![Warehouse Autopilot Command Center](./screenshots/Dashboard.png)
 
 Give it real `alt` text describing what it shows (not just a filename) — this also feeds directly into your Accessibility score.
 
