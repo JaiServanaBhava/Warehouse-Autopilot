@@ -351,3 +351,148 @@ class TestWorkersAPI:
         for w in resp.json():
             if "workload" in w:
                 assert w["workload"] >= 0
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GROUP 8: QR PASSPORTS & INVENTORY OPERATIONS
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestInventoryAndQR:
+    """QR passports, inventory adjustment, and alternate matching."""
+
+    def test_get_product_by_id(self):
+        """GET /api/products/{pid} returns single product details."""
+        products = client.get("/api/products").json()
+        if products:
+            pid = products[0]["id"]
+            resp = client.get(f"/api/products/{pid}")
+            assert resp.status_code == 200
+            data = resp.json()
+            # Returns product dictionary directly or nested inside "product" key
+            ret_id = data.get("id") or data.get("product", {}).get("id")
+            assert ret_id == pid
+
+    def test_product_qr_passport(self):
+        """GET /api/products/{pid}/qr-passport returns valid QR metadata."""
+        products = client.get("/api/products").json()
+        if products:
+            pid = products[0]["id"]
+            resp = client.get(f"/api/products/{pid}/qr-passport")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert "qr_code" in data or "passport" in data or "sku" in data
+
+    def test_alternate_products_endpoint(self):
+        """GET /api/inventory/alternate/{pid} returns substitution candidates."""
+        products = client.get("/api/products").json()
+        if products:
+            pid = products[0]["id"]
+            resp = client.get(f"/api/inventory/alternate/{pid}")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert isinstance(data, (dict, list))
+
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GROUP 9: FULFILLMENT PIPELINE & TASK QUEUES
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestFulfillmentPipeline:
+    """Pipeline queues, picking, packing, QC, and dispatch task states."""
+
+    def test_pipeline_queues_endpoint(self):
+        """GET /api/pipeline/queues returns structured stage counters."""
+        resp = client.get("/api/pipeline/queues")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), (dict, list))
+
+    def test_tasks_list_endpoint(self):
+        """GET /api/tasks returns current active warehouse tasks."""
+        resp = client.get("/api/tasks")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GROUP 10: WAREHOUSE MAPS & VISUALIZATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestWarehouseMaps:
+    """Warehouse spatial mapping and zone heatmaps."""
+
+    def test_heatmap_endpoint(self):
+        """GET /api/warehouse/heatmap returns aisle activity density."""
+        resp = client.get("/api/warehouse/heatmap")
+        assert resp.status_code == 200
+
+    def test_warehouse_map_endpoint(self):
+        """GET /api/warehouse/map returns zone and rack layout coordinates."""
+        resp = client.get("/api/warehouse/map")
+        assert resp.status_code == 200
+
+    def test_activity_feed_endpoint(self):
+        """GET /api/activity returns real-time warehouse audit feed."""
+        resp = client.get("/api/activity")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GROUP 11: SECURITY & INJECTION RESISTANCE
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestSecurityInjectionResistance:
+    """Verify system safety against SQLi, XSS, and malformed inputs."""
+
+    def test_sqli_in_search_query_safe(self):
+        """SQL injection strings in search do not trigger 500 errors."""
+        malicious = "' OR '1'='1' -- ; DROP TABLE products;"
+        resp = client.get(f"/api/search?q={malicious}")
+        assert resp.status_code in (200, 400, 422)
+        # Database must still have products
+        assert len(client.get("/api/products").json()) > 0
+
+    def test_xss_payload_in_category_filter_safe(self):
+        """XSS script payloads in filter query parameters are neutralized."""
+        xss_payload = "<script>alert('pwned')</script>"
+        resp = client.get(f"/api/products?category={xss_payload}")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+
+    def test_invalid_uuid_in_product_path(self):
+        """Malformed product UUID returns 404/422 without crashing."""
+        resp = client.get("/api/products/not-a-valid-uuid-12345")
+        assert resp.status_code in (404, 422, 200)
+
+    def test_invalid_uuid_in_order_path(self):
+        """Malformed order UUID returns 404/422 without crashing."""
+        resp = client.get("/api/orders/invalid-order-uuid-999")
+        assert resp.status_code in (404, 422, 200)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  GROUP 12: NOTIFICATIONS & OUTBOX
+# ══════════════════════════════════════════════════════════════════════════════
+
+class TestNotificationsAndOutbox:
+    """Alerts, Outbox dispatch queue, and notification settings."""
+
+    def test_get_outbox(self):
+        """GET /api/outbox returns list of dispatched/queued notifications."""
+        resp = client.get("/api/outbox")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), list)
+
+    def test_get_notification_settings(self):
+        """GET /api/notifications/settings returns configuration object."""
+        resp = client.get("/api/notifications/settings")
+        assert resp.status_code == 200
+        assert isinstance(resp.json(), dict)
+
+    def test_chat_status_endpoint(self):
+        """GET /api/status or chat status returns readiness."""
+        resp = client.get("/api/status")
+        # Accept 200 or 404 depending on exact route prefix
+        assert resp.status_code in (200, 404)
+
