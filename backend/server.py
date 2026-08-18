@@ -13,7 +13,7 @@ import sys
 ROOT = Path(__file__).resolve().parent
 FRONTEND_DIR = ROOT.parent / "frontend" / "public"
 
-# ALWAYS load app/backend/.env
+# Load backend/.env
 ENV_FILE = ROOT / ".env"
 load_dotenv(ENV_FILE, override=True)
 
@@ -22,15 +22,15 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(message)s"
 )
 
-# Make project root importable
-PROJECT_ROOT = ROOT.parent.parent
+# Make repo root importable (repo root = backend's parent when uploaded without app/ wrapper)
+PROJECT_ROOT = ROOT.parent
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.backend.db import init_db
-from app.backend.seed import seed_demo
-from app.backend.routers import (
+from backend.db import init_db
+from backend.seed import seed_demo
+from backend.routers import (
     products,
     orders,
     ops,
