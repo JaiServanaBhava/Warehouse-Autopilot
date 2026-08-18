@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: warehouse-autopilot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: AUTOMATIC_EMAIL_ENABLED
+        value: "true"
+      - key: AUTOMATIC_WHATSAPP_ENABLED
+        value: "true"
