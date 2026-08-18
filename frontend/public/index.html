@@ -1,0 +1,750 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Warehouse Autopilot — Command Center</title>
+<meta name="description" content="Autonomous warehouse operations command center — inventory, orders, fulfillment and AI-driven decisions in one place." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ambient background -->
+<div class="bg-fx" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
+</div>
+
+<!-- notification permission banner -->
+<div id="notifPermBanner" class="notif-banner hidden">
+  <div class="notif-banner-inner">
+    <span class="notif-banner-icon">🔔</span>
+    <div class="notif-banner-text">
+      <b>Stay ahead of problems</b>
+      <span>Enable browser notifications to get critical alerts the instant they happen.</span>
+    </div>
+    <div class="notif-banner-actions">
+      <button id="notifPermAllow" class="btn btn-primary btn-sm">Enable</button>
+      <button id="notifPermDismiss" class="btn btn-ghost btn-sm">Not now</button>
+    </div>
+  </div>
+</div>
+
+<!-- toasts -->
+<div id="toastStack" class="toast-stack"></div>
+
+<!-- modal -->
+<div id="modalRoot" class="modal-root hidden">
+  <div id="modalBackdrop" class="modal-backdrop"></div>
+  <div id="modalPanel" class="modal-panel" role="dialog" aria-modal="true"></div>
+</div>
+
+<!-- AI Warehouse Copilot -->
+<button id="aiChatOpen" class="ai-chat-fab" title="Open Warehouse Copilot" aria-label="Open Warehouse Copilot">
+  <span class="ai-chat-fab-icon">✦</span>
+</button>
+
+<aside id="aiChatPanel" class="ai-chat-panel" aria-label="Warehouse AI Copilot" aria-hidden="true">
+  <div class="ai-chat-head">
+    <div class="ai-chat-identity">
+      <div class="ai-chat-avatar">✦</div>
+      <div class="ai-chat-title">
+        <b>Warehouse Copilot</b>
+        <span><i class="ai-live-dot"></i> Live warehouse intelligence</span>
+      </div>
+    </div>
+    <button id="aiChatClose" class="ai-chat-close" aria-label="Close Copilot">×</button>
+  </div>
+
+  <div class="ai-chat-status">
+    <span>LIVE CONTEXT</span>
+    <span>Inventory · Orders · Alerts · Decisions</span>
+  </div>
+
+  <div id="aiChatMessages" class="ai-chat-messages">
+    <div class="ai-msg assistant">
+      <div class="ai-msg-role">
+        <span class="ai-mini-avatar">✦</span>
+        WAREHOUSE COPILOT
+      </div>
+      <div class="ai-msg-body">
+        Ask me anything about your warehouse. I can analyze shortages, risky orders,
+        business impact, bottlenecks, alerts, inventory and operational decisions.
+      </div>
+      <div class="ai-suggestions">
+        <button type="button" data-chat-suggestion="What should I do right now? Give me a ranked action plan.">🚨 What should I do now?</button>
+        <button type="button" data-chat-suggestion="What are the critical shortages and stockouts right now?">📉 Critical Shortages</button>
+        <button type="button" data-chat-suggestion="Which high-priority customer orders are at risk of missing their deadlines?">📦 At-Risk Orders</button>
+        <button type="button" data-chat-suggestion="How can we resolve the bottleneck and congestion in Zone C?">🗺️ Zone C Congestion</button>
+        <button type="button" data-chat-suggestion="Draft an emergency purchase order recommendation for out-of-stock items.">⚡ Emergency PO Draft</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-chat-compose">
+    <div class="ai-input-shell">
+      <textarea id="aiChatInput" rows="1" placeholder="Ask about your warehouse…" aria-label="Ask Warehouse Copilot"></textarea>
+      <button id="aiChatSend" class="ai-send-btn" aria-label="Send message">
+        <span>↑</span>
+      </button>
+    </div>
+    <div class="ai-chat-footer">AI answers are based on your live warehouse data</div>
+  </div>
+</aside>
+
+<div class="shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span></div>
+      <div class="brand-copy">
+        <div class="brand-title">Warehouse</div>
+        <div class="brand-sub">AUTOPILOT</div>
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
+    </div>
+
+    <nav class="nav" id="nav">
+      <div class="nav-group-label">Intelligence</div>
+      <a class="nav-item nav-copilot-btn" data-view="copilot" id="sidebarCopilotBtn" title="Launch Warehouse AI Copilot">
+        <span class="nav-copilot-sparkle">✦</span>
+        <span>AI Copilot</span>
+        <span class="nav-copilot-badge">Live</span>
+      </a>
+
+      <div class="nav-group-label">Overview</div>
+      <a class="nav-item active" data-view="dashboard">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        <span>Dashboard</span>
+      </a>
+
+      <div class="nav-group-label">Warehouse</div>
+      <a class="nav-item" data-view="inventory">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        <span>Inventory</span>
+      </a>
+      <a class="nav-item" data-view="orders">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v3H9z"/><rect x="6" y="4" width="12" height="18" rx="1.5"/><path d="M9 11h6M9 15h6"/></svg>
+        <span>Orders</span>
+      </a>
+      <a class="nav-item" data-view="map">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-3V4l6 3 6-3 6 3v13l-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></svg>
+        <span>Warehouse Map</span>
+      </a>
+
+      <div class="nav-group-label">Fulfillment</div>
+      <a class="nav-item" data-view="picking">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+        <span>Picking</span>
+      </a>
+      <a class="nav-item" data-view="packing">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22.08V12"/></svg>
+        <span>Packing</span>
+      </a>
+      <a class="nav-item" data-view="qc">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+        <span>Quality Control</span>
+      </a>
+      <a class="nav-item" data-view="dispatch">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Dispatch</span>
+      </a>
+
+      <div class="nav-group-label">Operations</div>
+      <a class="nav-item" data-view="exceptions">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <span>Exceptions</span>
+      </a>
+      <a class="nav-item" data-view="decisions">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span>Decisions</span>
+      </a>
+      <a class="nav-item" data-view="alerts">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9z"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span>Alerts</span>
+        <span class="nav-badge hidden" id="notifBadge">0</span>
+      </a>
+
+      <div class="nav-group-label">Insights</div>
+      <a class="nav-item" data-view="analytics">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <span>Analytics</span>
+      </a>
+      <a class="nav-item" data-view="audit">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+        <span>Audit Log</span>
+      </a>
+
+      <div class="nav-group-label">System</div>
+      <a class="nav-item" data-view="settings">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span>Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="autopilot-mini">
+        <div class="ring-wrap-sm">
+          <svg viewBox="0 0 44 44" class="ring-svg-sm">
+            <circle cx="22" cy="22" r="18" class="ring-bg-sm"></circle>
+            <circle id="autopilotRing" cx="22" cy="22" r="18" class="ring-fg-sm" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"></circle>
+          </svg>
+          <div class="ring-center-sm" id="autopilotMiniScore">--</div>
+        </div>
+        <div class="autopilot-mini-text">
+          <b>Autopilot</b>
+          <span id="autopilotMiniStatus">Connecting…</span>
+        </div>
+      </div>
+      <div class="conn-status">
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connText">Connecting…</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+
+      <div class="topbar-left">
+        <div class="crumb-row">
+         
+          <span class="crumb-sep">/</span>
+          <span class="warehouse-tag" id="warehouseName">—</span>
+        </div>
+        
+      </div>
+
+      <div class="topbar-right">
+        <div class="search-box">
+          <svg class="search-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="globalSearch" type="text" placeholder="Search SKU, order, exception…" autocomplete="off" />
+          <kbd class="search-kbd">/</kbd>
+          <div id="searchResults" class="search-results hidden"></div>
+        </div>
+        
+        <!-- Sleek Notification Bell Button -->
+        <button class="topbar-notif-btn" id="topbarNotifBtn" title="Alerts &amp; Notifications" aria-label="Open Notifications">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="topbar-notif-badge hidden" id="topbarNotifBadge">0</span>
+        </button>
+
+        <div class="clock" id="clock">--:--:--</div>
+        <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light / Dark Theme" aria-label="Toggle Theme">🌓</button>
+        <button class="btn btn-accent btn-sm" id="resetDemoBtn">🔄 Reset Demo</button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ================= DASHBOARD ================= -->
+      <section id="view-dashboard" class="view active">
+        <!-- Dashboard Toolbar -->
+        <div class="dash-toolbar">
+          <div class="dash-filters" id="dashCatFilters">
+            <button class="filter-pill active" data-cat="">All Categories</button>
+            <button class="filter-pill" data-cat="Electronics">Electronics</button>
+            <button class="filter-pill" data-cat="Accessories">Accessories</button>
+            <button class="filter-pill" data-cat="Storage">Storage</button>
+            <button class="filter-pill" data-cat="Critical">🚨 Critical Shortages</button>
+          </div>
+          <div class="dash-quick-actions">
+            <button class="btn btn-ghost btn-sm" id="refreshAutopilotBtn">🔄 Refresh Autopilot</button>
+            <button class="btn btn-accent btn-sm" id="applySafeBtn2">🛡️ Apply Safe Actions</button>
+          </div>
+        </div>
+
+        <!-- 1. KPI Grid -->
+        <div class="kpi-grid" id="kpiGrid"></div>
+
+        <!-- 2. 🧠 "WHAT SHOULD I DO NOW?" AUTOPILOT ACTION QUEUE -->
+        <div class="panel autopilot-hero-panel">
+          <div class="panel-head">
+            <div class="panel-title-with-badge">
+              <h3>🧠 “What Should I Do Now?” Autopilot</h3>
+              <span class="live-badge-glow">LIVE RANKED ACTION QUEUE</span>
+            </div>
+            <span class="panel-hint">Ranked by Impact &amp; Confidence · 1-Click Instant Execution</span>
+          </div>
+          <div class="autopilot-action-grid" id="autopilotActionList">
+            <div class="loading-shimmer">Calculating real-time actionable recommendations…</div>
+          </div>
+        </div>
+
+        <!-- 3. 🗺️ BOTTLENECK HEATMAP + WORKER LOAD BALANCING -->
+        <div class="panel heatmap-panel">
+          <div class="panel-head">
+            <div class="panel-title-with-badge">
+              <h3>🗺️ Bottleneck Heatmap &amp; Zone Load Balancing</h3>
+              <span class="live-badge-glow" style="background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3);">DIGITAL TWIN ZONES</span>
+            </div>
+            <span class="panel-hint">Zone congestion, waiting orders, and autonomous load balancing</span>
+          </div>
+          <div class="heatmap-body">
+            <div class="zone-heatmap-grid" id="zoneHeatmapGrid"></div>
+            <div class="rebalance-card" id="rebalanceCard">
+              <div class="rebalance-info">
+                <div class="rb-icon">🤖</div>
+                <div class="rb-text">
+                  <b id="rebalanceTitle">Analyzing zone workloads…</b>
+                  <span id="rebalanceDetail">Autopilot is evaluating picking congestion across warehouse bays.</span>
+                </div>
+              </div>
+              <button class="btn btn-accent btn-sm" id="execRebalanceBtn">⚡ Rebalance Workers Now</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Pipeline Queues & Bottleneck -->
+        <div class="dash-grid dash-grid-3-1">
+          <div class="panel">
+            <div class="panel-head"><h3>Pipeline Queues</h3><span class="panel-hint">Orders currently in each stage</span></div>
+            <div class="queue-row" id="queueRow"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Bottleneck</h3></div>
+            <div class="bottleneck-panel" id="bottleneckPanel"></div>
+          </div>
+        </div>
+
+        <!-- 5. Warehouse Health & Business Impact -->
+        <div class="dash-grid dash-grid-even">
+          <div class="panel">
+            <div class="panel-head"><h3>Warehouse Health</h3><span class="tag" id="healthOverallTag">--/100</span></div>
+            <div class="health-breakdown" id="healthBreakdown"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Business Impact</h3><span class="panel-hint">Act vs. do nothing</span></div>
+            <div class="impact-panel" id="impactPanel"></div>
+          </div>
+        </div>
+
+        <!-- 6. Real-Time Email & Alert Outbox Stream + Recent Activity -->
+        <div class="dash-grid dash-grid-even">
+          <div class="panel">
+            <div class="panel-head">
+              <h3>📧 Real-Time Email &amp; Alert Outbox</h3>
+              <button class="btn btn-ghost btn-sm" id="viewAllOutboxBtn">View All</button>
+            </div>
+            <div class="outbox-live-stream" id="dashOutboxList">
+              <div class="empty-state">No notifications dispatched yet</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Recent Activity</h3></div>
+            <div class="activity-feed" id="activityFeed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= INVENTORY ================= -->
+      <section id="view-inventory" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Products &amp; Stock</h3>
+            <div class="panel-actions">
+              <button class="btn btn-ghost btn-sm" id="exportInvBtn">Export CSV</button>
+              <button class="btn btn-accent btn-sm" id="addProductBtn">+ Add Product</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <input id="invSearch" class="input" type="text" placeholder="Search SKU or name…" />
+            <select id="invCategory" class="input select"><option value="">All categories</option></select>
+            <select id="invStatus" class="input select">
+              <option value="">All statuses</option>
+              <option value="NORMAL">Normal</option>
+              <option value="LOW">Low</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="OUT_OF_STOCK">Out of stock</option>
+            </select>
+            <select id="invSort" class="input select">
+              <option value="name">Sort: Name</option>
+              <option value="stock">Sort: Available stock</option>
+              <option value="status">Sort: Status</option>
+              <option value="stockout">Sort: Days to stockout</option>
+            </select>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr>
+                <th>SKU</th><th>Name</th><th>Category</th><th>Location</th>
+                <th>Physical</th><th>Reserved</th><th>Damaged</th><th>Available</th>
+                <th>Status</th><th>Stockout</th><th>Reorder</th><th></th>
+              </tr></thead>
+              <tbody id="inventoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ORDERS ================= -->
+      <section id="view-orders" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Orders</h3>
+            <div class="panel-actions">
+              <button class="btn btn-ghost btn-sm" id="exportOrdersBtn">Export CSV</button>
+              <button class="btn btn-accent btn-sm" id="addOrderBtn">+ Create Order</button>
+            </div>
+          </div>
+          <div class="filter-row">
+            <select id="orderStatusFilter" class="input select"><option value="">All statuses</option></select>
+            <select id="orderPriorityFilter" class="input select">
+              <option value="">All priorities</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+            </select>
+          </div>
+          <div class="order-list" id="orderList"></div>
+        </div>
+      </section>
+
+      <!-- ================= PICKING ================= -->
+      <section id="view-picking" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3>Picking Queue</h3><span class="tag" id="pickCount">0</span></div>
+          <div class="task-list" id="pickingQueue"></div>
+        </div>
+      </section>
+
+      <!-- ================= PACKING ================= -->
+      <section id="view-packing" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3>Packing Queue</h3><span class="tag" id="packCount">0</span></div>
+          <div class="task-list" id="packingQueue"></div>
+        </div>
+      </section>
+
+      <!-- ================= QC ================= -->
+      <section id="view-qc" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3>Quality Control Queue</h3><span class="tag" id="qcCount">0</span></div>
+          <div class="task-list" id="qcQueue"></div>
+        </div>
+      </section>
+
+      <!-- ================= DISPATCH ================= -->
+      <section id="view-dispatch" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3>Dispatch Queue</h3><span class="tag" id="dispatchCount">0</span></div>
+          <div class="task-list" id="dispatchQueue"></div>
+        </div>
+      </section>
+
+      <!-- ================= EXCEPTIONS ================= -->
+      <section id="view-exceptions" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Exceptions</h3>
+            <div class="panel-actions">
+              <select id="excStatus" class="input select">
+                <option value="">All</option>
+                <option value="OPEN">Open</option>
+                <option value="RESOLVED">Resolved</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" id="refreshExcBtn">Refresh</button>
+            </div>
+          </div>
+          <div class="exc-list" id="exceptionList"></div>
+        </div>
+      </section>
+
+      <!-- ================= DECISIONS ================= -->
+      <section id="view-decisions" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Decision Engine</h3>
+            <div class="panel-actions">
+              <button class="btn btn-ghost btn-sm" id="refreshDecBtn">Refresh</button>
+              <button class="btn btn-accent btn-sm" id="applySafeBtn">Apply Safe Actions</button>
+            </div>
+          </div>
+          <div class="rec-list" id="decisionList"></div>
+        </div>
+      </section>
+
+      <!-- ================= ALERT CENTER ================= -->
+      <section id="view-alerts" class="view">
+        <div class="tabs" id="alertCenterTabs">
+          <span class="tab active" data-sub="active">Active Alerts</span>
+          <span class="tab" data-sub="history">Alert History</span>
+          <span class="tab" data-sub="email">Email Settings</span>
+          <span class="tab" data-sub="whatsapp">WhatsApp Settings</span>
+          <span class="tab" data-sub="general">Notification Settings</span>
+        </div>
+
+        <!-- Active Alerts -->
+        <div class="alert-sub" id="sub-active">
+          <div class="panel">
+            <div class="panel-head"><h3>Active Alerts</h3><span class="panel-hint">Live — no refresh needed</span></div>
+            <div class="alert-list" id="activeAlertList"></div>
+          </div>
+        </div>
+
+        <!-- Alert History -->
+        <div class="alert-sub hidden" id="sub-history">
+          <div class="panel">
+            <div class="panel-head"><h3>Alert History</h3></div>
+            <div class="tabs" id="historyTabs">
+              <span class="tab active" data-sev="">All</span>
+              <span class="tab" data-sev="CRITICAL">Critical</span>
+              <span class="tab" data-sev="HIGH">High</span>
+              <span class="tab" data-sev="MEDIUM">Medium</span>
+              <span class="tab" data-sev="LOW">Low</span>
+            </div>
+            <div class="alert-list" id="historyAlertList"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Notification Delivery History</h3></div>
+            <div class="tabs" id="deliveryTabs">
+              <span class="tab active" data-ch="">All</span>
+              <span class="tab" data-ch="EMAIL">Email</span>
+              <span class="tab" data-ch="WHATSAPP">WhatsApp</span>
+            </div>
+            <div class="outbox-list" id="deliveryList"></div>
+          </div>
+        </div>
+
+        <!-- Email Settings -->
+        <div class="alert-sub hidden" id="sub-email">
+          <div class="panel">
+            <div class="panel-head"><h3>Email Settings</h3><button class="btn btn-ghost btn-sm" id="testEmailBtn">Send Test Email</button></div>
+            <p class="panel-desc">Automatic email alerts are generated and sent entirely in the background — no Send button for normal operation.</p>
+            <div class="settings-list" id="emailSettings"></div>
+            <div class="panel-head" style="margin-top:18px;"><h3>Email Notification Rules</h3></div>
+            <div class="settings-list" id="emailRules"></div>
+          </div>
+        </div>
+
+        <!-- WhatsApp Settings -->
+        <div class="alert-sub hidden" id="sub-whatsapp">
+          <div class="panel">
+            <div class="panel-head"><h3>WhatsApp Settings</h3><button class="btn btn-ghost btn-sm" id="testWhatsappBtn">Send Test WhatsApp</button></div>
+            <p class="panel-desc">Sent automatically via Twilio — the recipient never has to open WhatsApp or click a link.</p>
+            <div class="settings-list" id="whatsappSettings"></div>
+            <div class="panel-head" style="margin-top:18px;"><h3>WhatsApp Notification Rules</h3></div>
+            <div class="settings-list" id="whatsappRules"></div>
+          </div>
+        </div>
+
+        <!-- General / Desktop Notification Settings -->
+        <div class="alert-sub hidden" id="sub-general">
+          <div class="panel">
+            <div class="panel-head"><h3>Desktop Notifications</h3></div>
+            <div class="settings-list" id="desktopSettings"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Presence</h3></div>
+            <p class="panel-desc">Detected automatically from this browser tab (visibility + inactivity) — not a manual switch.</p>
+            <div class="settings-list" id="presenceSettings"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= ANALYTICS ================= -->
+      <section id="view-analytics" class="view">
+        <div class="dash-grid dash-grid-even">
+          <div class="panel">
+            <div class="panel-head"><h3>Warehouse Health</h3></div>
+            <div class="health-breakdown" id="analyticsHealth"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Business Impact</h3></div>
+            <div class="impact-panel" id="analyticsImpact"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Risk Radar</h3><span class="panel-hint">Projected risk over the next 12 hours</span></div>
+          <div class="risk-radar" id="riskRadar"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Dependency Graph</h3>
+            <select id="depGraphSelect" class="input select"><option value="">Select an exception…</option></select>
+          </div>
+          <div class="dep-graph-wrap">
+            <svg id="depGraphSvg" viewBox="0 0 800 260" class="dep-graph-svg"></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= WAREHOUSE MAP ================= -->
+      <section id="view-map" class="view">
+        <div class="panel">
+          <div class="panel-head"><h3>Warehouse Map</h3><span class="panel-hint">Click a zone for details</span></div>
+          <div class="zone-grid" id="warehouseGrid"></div>
+        </div>
+      </section>
+
+      <!-- ================= AUDIT ================= -->
+      <section id="view-audit" class="view">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Audit Log</h3>
+            <button class="btn btn-ghost btn-sm" id="exportAuditBtn">Export CSV</button>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Time</th><th>Who</th><th>Action</th><th>Entity</th><th>Old</th><th>New</th></tr></thead>
+              <tbody id="auditBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS ================= -->
+      <section id="view-settings" class="view">
+        <div class="dash-grid dash-grid-even">
+          <!-- 1. Email Alerts -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title-with-badge">
+                <h3>📧 Email Alerts &amp; SMTP</h3>
+                <span class="live-badge-glow">REAL-TIME</span>
+              </div>
+            </div>
+            <p class="panel-desc">Dispatches background emails to your company/manager inbox for shortages, risk escalations, and lifecycle digests.</p>
+            <div class="settings-list" id="emailSettingsList"></div>
+          </div>
+
+          <!-- 2. WhatsApp (Twilio) -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title-with-badge">
+                <h3>💬 WhatsApp Alerts (Twilio)</h3>
+                <span class="live-badge-glow" style="background:rgba(47,224,165,0.15);color:var(--ok);border-color:rgba(47,224,165,0.3);">TWILIO API</span>
+              </div>
+            </div>
+            <p class="panel-desc">Sends direct WhatsApp messages for critical outages, major loss events, and demo reset notifications.</p>
+            <div class="settings-list" id="whatsappSettingsList"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid dash-grid-even">
+          <!-- 3. Automated Low-Stock Supplier PO Service -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title-with-badge">
+                <h3>📦 Automated Low-Stock Reorder PO Service</h3>
+                <span class="live-badge-glow" style="background:rgba(56,189,248,0.15);color:#38bdf8;border-color:rgba(56,189,248,0.3);">AUTO-ORDER</span>
+              </div>
+            </div>
+            <p class="panel-desc">Automatically generates and routes structured Purchase Order emails to supplier procurement teams when stock runs low.</p>
+            <div class="settings-list" id="supplierPoSettingsList"></div>
+          </div>
+
+          <!-- 4. Warehouse Automation & Facility -->
+          <div class="panel">
+            <div class="panel-head">
+              <h3>⚙️ Automation &amp; Facility Settings</h3>
+            </div>
+            <p class="panel-desc">Configure autonomous decision execution and command center identification.</p>
+            <div class="settings-list" id="autoSettingsList"></div>
+          </div>
+        </div>
+
+        <div class="dash-grid dash-grid-even">
+          <!-- 5. Demo Data Management -->
+          <div class="panel">
+            <div class="panel-head"><h3>🔄 Demo Data Management</h3></div>
+            <p class="panel-desc">Regenerate products, orders, workers and history to reset the demo. Configured email and WhatsApp settings are safely preserved.</p>
+            <button class="btn btn-danger" id="resetDemoBtn2">Reset Demo Data</button>
+          </div>
+
+          <!-- 6. API Connection -->
+          <div class="panel">
+            <div class="panel-head"><h3>🔌 API Connection</h3></div>
+            <p class="panel-desc">Point the frontend interface at a different backend instance.</p>
+            <div class="api-bar-row">
+              <input id="apiBaseInput" class="input" type="text" placeholder="http://localhost:8000/api" />
+              <button class="btn btn-primary btn-sm" id="apiBaseSave">Save</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DEDICATED AI COPILOT VIEW ================= -->
+      <section id="view-copilot" class="view">
+        <div class="copilot-page-layout">
+          <!-- Left: Real-Time Operational Context & Quick Action Prompts -->
+          <div class="copilot-context-sidebar">
+            <div class="panel">
+              <div class="panel-head">
+                <div class="panel-title-with-badge">
+                  <h3>✦ Live Warehouse State</h3>
+                  <span class="live-badge-glow">REAL-TIME</span>
+                </div>
+              </div>
+              <p class="panel-desc" style="margin-bottom:12px;">Live facts fed directly to Gemini context:</p>
+              <div class="copilot-context-metrics" id="copilotContextMetrics">
+                <div class="loading-shimmer" style="padding:16px;">Loading live context metrics…</div>
+              </div>
+            </div>
+
+            <div class="panel" style="margin-top:16px;">
+              <div class="panel-head">
+                <h3>⚡ Actionable Prompts</h3>
+              </div>
+              <div class="copilot-quick-prompts">
+                <button type="button" class="btn btn-ghost btn-xs btn-quick-copilot" data-prompt="What should I do right now? Give me a ranked operational action plan.">🚨 What should I do now?</button>
+                <button type="button" class="btn btn-ghost btn-xs btn-quick-copilot" data-prompt="Analyze all critical shortages and calculate stockout runway.">📉 Critical Shortages</button>
+                <button type="button" class="btn btn-ghost btn-xs btn-quick-copilot" data-prompt="Which customer orders are at risk of missing fulfillment SLA?">📦 At-Risk Orders</button>
+                <button type="button" class="btn btn-ghost btn-xs btn-quick-copilot" data-prompt="How should we resolve Zone C congestion and worker bottlenecks?">🗺️ Rebalance Workers</button>
+                <button type="button" class="btn btn-ghost btn-xs btn-quick-copilot" data-prompt="Draft an automated supplier purchase order for out-of-stock items.">📦 Draft Reorder PO</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Full Dedicated Chat Interface -->
+          <div class="copilot-chat-container">
+            <div class="copilot-chat-head">
+              <div class="copilot-head-info">
+                <span class="ai-mini-avatar">✦</span>
+                <div>
+                  <b>Warehouse Autonomous Copilot</b>
+                  <span>Grounded in live database state · Powered by Gemini</span>
+                </div>
+              </div>
+              <div class="copilot-head-actions">
+                <button class="btn btn-ghost btn-xs" id="clearCopilotChatBtn">🗑️ Clear Chat</button>
+              </div>
+            </div>
+
+            <div class="copilot-chat-history" id="copilotChatHistory">
+              <!-- Persistent Chat Messages -->
+            </div>
+
+            <div class="copilot-chat-input-bar">
+              <textarea id="copilotPageInput" placeholder="Ask Copilot anything about shortages, orders, workers, or decisions…" rows="1"></textarea>
+              <button id="copilotPageSend" class="btn btn-accent btn-sm">
+                <span>Send</span> <b>↑</b>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
