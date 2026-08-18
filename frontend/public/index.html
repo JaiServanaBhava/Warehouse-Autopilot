@@ -9,8 +9,13 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="skip-link.css" />
+
 </head>
 <body>
+
+<!-- Skip to main content (accessibility) -->
+<a href="#mainContent" class="skip-link">Skip to main content</a>
 
 <!-- ambient background -->
 <div class="bg-fx" aria-hidden="true">
@@ -36,7 +41,7 @@
 </div>
 
 <!-- toasts -->
-<div id="toastStack" class="toast-stack"></div>
+<div id="toastStack" class="toast-stack" role="status" aria-live="polite" aria-label="Notifications" aria-atomic="false"></div>
 
 <!-- modal -->
 <div id="modalRoot" class="modal-root hidden">
@@ -97,10 +102,10 @@
   </div>
 </aside>
 
-<div class="shell">
+<div class="shell" id="mainContent">
 
   <!-- ============ SIDEBAR ============ -->
-  <aside class="sidebar" id="sidebar">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <div class="brand">
       <div class="brand-mark"><span></span><span></span><span></span></div>
       <div class="brand-copy">
@@ -110,27 +115,27 @@
       <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">✕</button>
     </div>
 
-    <nav class="nav" id="nav">
+    <nav class="nav" id="nav" role="navigation" aria-label="Primary">
       <div class="nav-group-label">Intelligence</div>
-      <a class="nav-item nav-copilot-btn" data-view="copilot" id="sidebarCopilotBtn" title="Launch Warehouse AI Copilot">
-        <span class="nav-copilot-sparkle">✦</span>
+      <a class="nav-item nav-copilot-btn" data-view="copilot" id="sidebarCopilotBtn" title="Launch Warehouse AI Copilot" role="button" aria-label="Open AI Copilot" tabindex="0">
+        <span class="nav-copilot-sparkle" aria-hidden="true">✦</span>
         <span>AI Copilot</span>
-        <span class="nav-copilot-badge">Live</span>
+        <span class="nav-copilot-badge" aria-label="Live status">Live</span>
       </a>
 
       <div class="nav-group-label">Overview</div>
-      <a class="nav-item active" data-view="dashboard">
-        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+      <a class="nav-item active" data-view="dashboard" role="button" aria-label="Dashboard" aria-current="page" tabindex="0">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
         <span>Dashboard</span>
       </a>
 
       <div class="nav-group-label">Warehouse</div>
-      <a class="nav-item" data-view="inventory">
-        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+      <a class="nav-item" data-view="inventory" role="button" aria-label="Inventory" tabindex="0">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
         <span>Inventory</span>
       </a>
-      <a class="nav-item" data-view="orders">
-        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6v3H9z"/><rect x="6" y="4" width="12" height="18" rx="1.5"/><path d="M9 11h6M9 15h6"/></svg>
+      <a class="nav-item" data-view="orders" role="button" aria-label="Orders" tabindex="0">
+        <svg class="nav-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6v3H9z"/><rect x="6" y="4" width="12" height="18" rx="1.5"/><path d="M9 11h6M9 15h6"/></svg>
         <span>Orders</span>
       </a>
       <a class="nav-item" data-view="map">
