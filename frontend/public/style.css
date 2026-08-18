@@ -2106,5 +2106,42 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16p
   .copilot-chat-container { height: 600px; }
 }
 
+/* ==========================================================================
+   WCAG 2.1 AA Accessibility Utilities & Focus States
+   ========================================================================== */
 
+/* Screen reader only utility class */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
 
+/* High visibility keyboard navigation focus ring */
+*:focus-visible {
+  outline: 2px solid var(--primary, #6d6bff) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(109, 107, 255, 0.35) !important;
+}
+
+/* Interactive elements cursor & tap target sizes */
+button, a, input, select, textarea, [role="button"], [tabindex="0"] {
+  min-height: 36px;
+  touch-action: manipulation;
+}
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
